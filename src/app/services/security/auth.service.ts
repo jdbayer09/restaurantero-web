@@ -4,6 +4,8 @@ import { StorageService } from '../util/storage.service';
 import { storageKeys } from '../../../environments/storage-keys';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { Router } from '@angular/router';
+import { LoginModel } from '../../models/login.model';
+import { HttpClient } from '@angular/common/http';
 
 const JWT_HELPER = new JwtHelperService();
 const USER_DATA_KEY = storageKeys.USER_DATA;
@@ -17,7 +19,8 @@ export class AuthService {
 
   constructor(
     private storage: StorageService,
-    private router: Router
+    private router: Router,
+    private http: HttpClient
   ) { }
 
   async isAuthenticated() {
@@ -42,6 +45,28 @@ export class AuthService {
     this.router.navigateByUrl('/login', {replaceUrl: true});
   }
 
+  async login(data: LoginModel): Promise<UsuarioDataModel | any | null> {
+    return new Promise((resolve, reject) => {
+      this.http.post(`http://192.168.1.7:8080/restaurantero/api/login`, data).subscribe({next: ((resp: any) => {
+        if (resp && resp.token) {
+          this.storage.set(USER_DATA_KEY, resp);
+          resolve(resp)
+        } else {
+          reject(null)
+        }
+      }), error: (err => {
+        if (err.status === 0) {
+          err.viewTittle = '¡Problemas de Conexión!';
+          err.viewMessage = 'Verificar la conexión del sistema';
+        } else {
+          err.viewTittle = err.error.message;
+          err.viewMessage = err.error.error;
+        }
+        reject(err);
+      })})
+    });
+  }
+
   private isAuthAction(): Promise<boolean> {
     return new Promise(async (resolve) => {
       const token = await this.getToken();
@@ -62,7 +87,7 @@ export class AuthService {
   private isNotAuthAction(): Promise<boolean> {
     return new Promise(async (resolve) => {
       const token = await this.getToken();
-      if (token || token === '') {
+      if (!token || token === '') {
         this.storage.delete(USER_DATA_KEY);
         this.token = '';
         resolve(true);

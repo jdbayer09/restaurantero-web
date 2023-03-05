@@ -1,14 +1,29 @@
 <div class="flex h-screen">
     <div class="w-full lg:w-4 h-full text-center px-6 py-6 flex flex-column justify-content-between">
         <img [src]="'assets/logo.png'" alt="diamond-layout" width="128px" height="128px"/>
-        <form>
+        <form [formGroup]="loginForm" (ngSubmit)="onSubit()">
             <div class="flex flex-column align-items-center gap-4">
                 <div class="mb-3">
                     <h2>Acceda a su cuenta</h2>
                 </div>
-                <input pInputText id="login" placeholder="Usuario" class="w-20rem"/>
-                <p-password  id="password" placeholder="Contraseña" [feedback]="true" inputStyleClass="w-20rem"></p-password>
-                <button pButton label="INICIAR SESIÓN" type="submit" class="w-20rem"></button>
+                <input pInputText id="login" placeholder="Usuario" class="w-20rem" formControlName="login"/>
+                <p-password  id="password" placeholder="Contraseña" [feedback]="true" inputStyleClass="w-20rem" formControlName="contrasena"></p-password>
+                <p-progressBar 
+                    *ngIf="loading" 
+                    class="w-20rem animate__animated animate__fadeIn" 
+                    mode="indeterminate">
+                </p-progressBar>
+                <button 
+                    *ngIf="!loading" 
+                    pButton 
+                    label="INICIAR SESIÓN" 
+                    type="submit" 
+                    class="w-20rem animate__animated animate__fadeIn" 
+                    [disabled]="loginForm.invalid">
+                </button>
+                <p-message *ngIf="error !== ''" severity="error" [text]="error">
+
+                </p-message>
             </div>
         </form>
         <p class="text-color-secondary font-semibold"></p>
@@ -23,4 +38,3 @@
         </div>
     </div>
 </div>
-
